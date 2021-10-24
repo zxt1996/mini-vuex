@@ -1,4 +1,49 @@
 import applyMixin from "./mixin";
+import ModuleCollection from './module/module-collection';
+
+/**
+ * 安装模块
+ * @param {*} store       容器
+ * @param {*} rootState   根状态
+ * @param {*} path        所有路径
+ * @param {*} module      格式化后的模块对象
+ */
+ const installModule = (store, rootState, path, module) => {
+
+    // 遍历当前模块中的 actions、mutations、getters 
+    // 将它们分别定义到 store 中的 _actions、_mutations、_wrappedGetters;
+  
+    // 遍历 mutation
+    module.forEachMutation((mutation, key) => {
+      // 处理成为数组类型：每个 key 可能会存在多个需要被处理的函数
+      store._mutations[key] = (store._mutations[key] || []);
+      // 向 _mutations 对应 key 的数组中，放入对应的处理函数
+      store._mutations[key].push((payload) => {
+        // 执行 mutation，传入当前模块的 state 状态
+        mutation.call(store, module.state, payload);
+      })
+    })
+    // 遍历 action
+    module.forEachAction((action, key) => {
+      store._actions[key] = (store._actions[key] || []);
+      store._actions[key].push((payload) => {
+        action.call(store, store, payload);
+      })
+    })
+    // 遍历 getter
+    module.forEachGetter((getter, key) => {
+      // 注意：getter 重名将会被覆盖
+      store._wrappedGetters[key] = function () {
+        // 执行对应的 getter 方法，传入当前模块的 state 状态，返回执行结果
+        return getter(module.state)   
+      }
+    })
+    // 遍历当前模块的儿子
+    module.forEachChild((child, key) => {
+      // 递归安装/加载子模块
+      installModule(store, rootState, path.concat(key), child);
+    })
+  }
 
 // 容器初始化
 export class Store {
@@ -72,6 +117,14 @@ export class Store {
             // 执行 actions 对象中对应的方法，并传入 payload 执行
             this.actions[type](payload);
         }
+
+        this._actions = {};
+        this._mutations = {};
+        this._wrappedGetters = {};
+
+        this._modules = new ModuleCollection(options);
+
+        installModule(this, state, [], this._modules.root);
 
         // 响应式数据：new Vue({data})
         // vuex 中 state 状态的响应式是借助了 Vue 来实现的
