@@ -1,3 +1,5 @@
+import { forEachValue } from "../utils";
+
 /**
  * Module 模块类，提供模块数据结构与相关能力扩展
  */
@@ -34,7 +36,8 @@ class Module {
      */
     forEachMutation(fn) {
         if (this._raw.mutations) {
-        Object.keys(this._raw.mutations).forEach(key=>fn(this._raw.mutations[key],key));
+            // Object.keys(this._raw.mutations).forEach(key=>fn(this._raw.mutations[key],key));
+            forEachValue(this._raw.mutations, fn);
         }
     }
     /**
@@ -43,7 +46,8 @@ class Module {
      */
     forEachAction(fn) {
         if (this._raw.actions) {
-        Object.keys(this._raw.actions).forEach(key=>fn(this._raw.actions[key],key));
+            // Object.keys(this._raw.actions).forEach(key=>fn(this._raw.actions[key],key));
+            forEachValue(this._raw.actions, fn);
         }
     }
     /**
@@ -52,7 +56,8 @@ class Module {
      */
     forEachGetter(fn) {
         if (this._raw.getters) {
-        Object.keys(this._raw.getters).forEach(key=>fn(this._raw.getters[key],key));
+            // Object.keys(this._raw.getters).forEach(key=>fn(this._raw.getters[key],key));
+            forEachValue(this._raw.getters, fn);
         }
     }
     /**
@@ -60,6 +65,7 @@ class Module {
      * @param {*} fn 返回当前子模块 和 key,具体处理逻辑由调用方实现
      */
     forEachChild(fn) {
-        Object.keys(this._children).forEach(key=>fn(this._children[key],key));
+        // Object.keys(this._children).forEach(key=>fn(this._children[key],key));
+        forEachValue(this._children, fn);
     }
 }
