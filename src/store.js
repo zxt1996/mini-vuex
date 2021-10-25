@@ -43,6 +43,16 @@ import ModuleCollection from './module/module-collection';
       // 递归安装/加载子模块
       installModule(store, rootState, path.concat(key), child);
     })
+
+    // 处理子模块：将子模块上的状态，添加到对应父模块的状态中；
+    if(path.length > 0){
+        // 从根状态开始逐层差找，找到当前子模块对应的父模块状态
+        let parent = path.slice(0, -1).reduce((memo, current)=>{
+            return memo[current]
+        }, rootState)
+        // 支持 Vuex 动态添加模块，将新增状态直接定义成为响应式数据；
+        Vue.set(parent, path[path.length-1], module.state);
+    }
   }
 
 // 容器初始化
